@@ -1,6 +1,6 @@
 # spin
 
-A fidget-spinner toy with three modes (Endurance, Zone, Speed) and a global leaderboard.
+A fidget-spinner toy with Endurance and Speed modes (Zone is built in but hidden — see `HIDDEN_MODES` in index.html) and a global leaderboard.
 
 - `index.html` — the whole app, one self-contained file.
 - Scores are stored in the Supabase table `public.spin_scores`. The page reads it directly and saves through the `submit_spin_score` function, which enforces:
