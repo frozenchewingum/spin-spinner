@@ -221,27 +221,13 @@ a:hover{color:#ffd6c0}
             <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ h.text }}</p>
           </div>
         </sc-for>
-        <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid rgba(255,214,192,.12);border-radius:18px">
-          <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Timing words</span>
-          <sc-for list="{{ helpWords }}" as="w" hint-placeholder-count="4">
-            <div style="display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;align-items:baseline">
-              <span style="font:italic 400 20px/1 'Instrument Serif',Georgia,serif;color:{{ w.color }}">{{ w.word }}</span>
-              <span style="margin:0;font:400 12px/1.55 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ w.text }}</span>
-            </div>
-          </sc-for>
-        </div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Modes</span>
           <sc-for list="{{ helpModes }}" as="m" hint-placeholder-count="2">
             <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8"><span style="color:#ffd6c0">{{ m.name }}</span> — {{ m.text }}</p>
           </sc-for>
         </div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Tips</span>
-          <sc-for list="{{ helpTips }}" as="tip" hint-placeholder-count="4">
-            <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">· {{ tip }}</p>
-          </sc-for>
-        </div>
+        <p style="margin:0;font:italic 400 20px/1.3 'Instrument Serif',Georgia,serif;color:#9a90ae">The rest is yours to discover.</p>
         <button sc-camel-on-click="{{ closeHelp }}" style="min-height:52px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 12px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer">{{ helpCta }}</button>
       </div>
     </div>
@@ -552,29 +538,15 @@ class Component extends DCLogic {
       closeHelp: () => { LS.set('spin.helpSeen', '1'); this.setState({ showHelp: false }); },
       helpCta: LS.get('spin.helpSeen') ? 'Got it' : "Let's spin",
       helpSteps: [
-        ['Flick to start', 'Swipe along the outer ring of the spinner (not the middle), like flicking a real one. Long, smooth swipes near the edge are strongest — the % after each swipe shows how good it was.'],
-        ['Swipe again as the ring lands', 'While it spins, a pink ring shrinks toward the edge of the spinner. Swipe again, in the same direction, just as it lands to boost the speed.'],
-        ['Chain perfects', 'Back-to-back perfect swipes build a combo — each one adds more speed than the last, up to ×10.'],
-        ['Watch your swipes', 'Each run has a few swipes (the dots under the score). When they run out, let it spin down — the run ends when the spinner stops.'],
+        ['Flick it', 'Swipe across the spinner to set it spinning.'],
+        ['Keep it going', 'You get a few more swipes each run. When and how you use them is up to you.'],
+        ['Climb the board', 'Save your best run and see how you rank today, this week and all-time.'],
       ].map(([title, text], i) => ({ n: String(i + 1).padStart(2, '0'), title, text })),
-      helpWords: [
-        ['perfect', '#ffd6c0', 'Right on the ring. Big boost, combo +1, steadies wobble.'],
-        ['good', '#e9e7ff', 'Close enough. Normal boost, combo kept, a little wobble.'],
-        ['miss', '#ffb4a8', 'Too early or late. Loses ~18% speed and the combo.'],
-        ['reversed', '#ffb4a8', 'Swiped the wrong way. Loses ~45% speed.'],
-      ].map(([word, color, text]) => ({ word, color, text })),
       helpModes: [
-        ['Endurance', '3 swipes. Score = total turns before it stops. Use “Skip to end ›” to fast-forward the spin-down.'],
-        ['Speed', '5 swipes. Score = the fastest it reached, in revolutions per second.'],
-        ['Zone', 'Keep the needle inside a moving band for 30 s. Swipe with the spin to speed up, against it to slow down.'],
+        ['Endurance', 'as many turns as you can.'],
+        ['Speed', 'the fastest spin you can reach.'],
+        ['Zone', 'stay in the band for 30 seconds.'],
       ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).map(([name, text]) => ({ name, text })),
-      helpTips: [
-        'Above ~7 rev/s the spinner starts to wobble and loses speed faster — perfect swipes calm it down.',
-        'Extra speed gets harder to add the faster it already spins, so timing matters more than force.',
-        'Press and hold the centre cap to brake.',
-        'Ranking shows today, this week and all-time. Your name is tied to this device — use “Use on another device” on the board to move it.',
-        'The palette button changes colour and shape; the speaker button mutes sound.',
-      ],
       stop: e => e.stopPropagation(),
       soundText: on ? 'Sound on' : 'Sound off',
       soundLabel: on ? 'Mute sound' : 'Turn sound on',

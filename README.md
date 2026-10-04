@@ -6,27 +6,19 @@ A 3D fidget spinner you flick with your finger, with a rhythm-timing twist and g
 
 ## How to play
 
-1. **Flick to start.** Swipe along the outer ring of the spinner (not the middle). Long, smooth swipes near the edge are strongest. The `%` shown after each swipe is its quality.
-2. **Swipe again as the ring lands.** While it spins, a pink ring shrinks toward the spinner's edge. Swipe again, in the same direction, just as it lands.
-3. **Chain perfects.** Back-to-back perfect swipes build a combo that adds more speed each time, up to ×10.
-4. **Watch your swipes.** Each run has a limited number (the dots under the score). The run ends when the spinner stops.
+1. **Flick it.** Swipe across the spinner to set it spinning.
+2. **Keep it going.** You get a few more swipes each run. When and how you use them is up to you.
+3. **Climb the board.** Save your best run and see how you rank.
 
-| Word | Meaning |
+| Mode | Goal |
 |---|---|
-| **perfect** | On the ring. Big boost, combo +1, reduces wobble. |
-| **good** | Close. Normal boost, combo kept, adds a little wobble. |
-| **miss** | Too early or late. Loses ~18% speed and the combo. |
-| **reversed** | Swiped against the spin. Loses ~45% speed. |
+| **Endurance** | As many turns as you can. |
+| **Speed** | The fastest spin you can reach. |
+| **Zone** *(hidden)* | Stay in the band for 30 seconds. |
 
-| Mode | Swipes | Score |
-|---|---|---|
-| **Endurance** | 3 | Total turns before it stops. *Skip to end ›* fast-forwards the spin-down. |
-| **Speed** | 5 | Peak revolutions per second. |
-| **Zone** *(hidden)* | 20 | Seconds spent inside a moving speed band during a 30 s run. |
+The rest is yours to discover.
 
-Other controls: press and hold the centre cap to brake; **?** opens the in-game guide; the palette button changes colour and shape; the speaker button mutes sound.
-
-The full rules and numbers are in [docs/mechanics.md](docs/mechanics.md).
+> **Spoilers:** the exact rules and formulas are in [docs/mechanics.md](docs/mechanics.md), for developers.
 
 ## Leaderboards
 
@@ -109,7 +101,7 @@ Every table has row-level security with no public policies, so the browser can't
 | Swipes per mode, physics, timing | `MODES` and the constants described in `docs/mechanics.md`, in `assets/spinner.js` |
 | Blocked names | `insert into spin_blocked_words (word, exact) values ('word', false);` |
 | Rate limits, board size, reset timezone | `submit_spin_run` and `spin_period_start` in `supabase/003_players_and_boards.sql` |
-| Guide text | `helpSteps`, `helpWords`, `helpModes`, `helpTips` in `index.html` |
+| Guide text | `helpSteps` and `helpModes` in `index.html` |
 
 When you change `assets/spinner.js`, bump the `?v=` number on its `<script>` tag so phones fetch the new copy.
 

@@ -1,5 +1,7 @@
 # Game mechanics
 
+> **Spoiler warning.** This page explains exactly how scoring works. The in-game guide leaves it for players to discover, so don't share it with players who want to work it out themselves.
+
 Exact rules and constants used by `assets/spinner.js`. Angular speed `ω` is in radians per second; `rps = |ω| / 2π`.
 
 ## Spin-down
