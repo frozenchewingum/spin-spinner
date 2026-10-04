@@ -183,6 +183,7 @@ a:hover{color:#ffd6c0}
   <header style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:max(20px,env(safe-area-inset-top)) 24px 0;pointer-events:none">
     <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}"><div style="font:italic 400 24px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff;letter-spacing:.01em">spin</div></sc-if><sc-if value="{{ embedded }}" hint-placeholder-val="{{ false }}"><div style="width:120px;height:44px"></div></sc-if>
     <div style="pointer-events:auto;display:flex;gap:8px">
+      <button sc-camel-on-click="{{ openHelp }}" aria-label="How to play" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6"></path><circle cx="12" cy="17" r=".6" fill="currentColor"></circle></svg></button>
       <button sc-camel-on-click="{{ toggleCust }}" aria-label="Customize spinner" aria-expanded="{{ custOpen }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6h1.9A4.9 4.9 0 0 0 21 10.5C21 6.4 17 3 12 3z"></path><circle cx="7.5" cy="11" r="1.1"></circle><circle cx="10.5" cy="7" r="1.1"></circle><circle cx="15.5" cy="7.5" r="1.1"></circle></svg></button>
       <button sc-camel-on-click="{{ toggleSound }}" aria-label="{{ soundLabel }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="{{ soundWave }}"></path></svg></button>
     </div>
@@ -202,6 +203,46 @@ a:hover{color:#ffd6c0}
           <p role="alert" style="margin:-6px 0 0;font:400 12px/1.5 'Geist Mono',ui-monospace,monospace;color:#ffb4a8">{{ pendErr }}</p>
         </sc-if>
         <button sc-camel-on-click="{{ skip }}" style="min-height:48px;border:1px solid rgba(255,214,192,.4);border-radius:16px;background:rgba(255,255,255,.04);color:#e9e7ff;font:500 12px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer" style-hover="border-color:#ffd6c0;color:#ffd6c0">Skip — don't save</button>
+      </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ showHelp }}" hint-placeholder-val="{{ false }}">
+    <div sc-camel-on-click="{{ closeHelp }}" style="position:absolute;inset:0;z-index:7;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,14,.7)">
+      <div sc-camel-on-click="{{ stop }}" role="dialog" aria-label="How to play" style="width:100%;max-width:440px;max-height:calc(100dvh - 32px);overflow-y:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:24px;border:1px solid rgba(255,214,192,.18);border-radius:28px;background:rgba(17,11,29,.96)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font:italic 400 34px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff">How to play</span>
+          <button sc-camel-on-click="{{ closeHelp }}" aria-label="Close" style="width:44px;height:44px;margin:-10px -10px 0 0;border:0;background:none;color:#9a90ae;font:400 22px/1 'Geist Mono',monospace;cursor:pointer">×</button>
+        </div>
+        <sc-for list="{{ helpSteps }}" as="h" hint-placeholder-count="4">
+          <div style="display:grid;grid-template-columns:30px minmax(0,1fr);gap:4px 12px;align-items:baseline">
+            <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;color:#eaa3c4">{{ h.n }}</span>
+            <span style="font:italic 400 22px/1.1 'Instrument Serif',Georgia,serif;color:#ffd6c0">{{ h.title }}</span>
+            <span></span>
+            <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ h.text }}</p>
+          </div>
+        </sc-for>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid rgba(255,214,192,.12);border-radius:18px">
+          <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Timing words</span>
+          <sc-for list="{{ helpWords }}" as="w" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:84px minmax(0,1fr);gap:12px;align-items:baseline">
+              <span style="font:italic 400 20px/1 'Instrument Serif',Georgia,serif;color:{{ w.color }}">{{ w.word }}</span>
+              <span style="margin:0;font:400 12px/1.55 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ w.text }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Modes</span>
+          <sc-for list="{{ helpModes }}" as="m" hint-placeholder-count="2">
+            <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8"><span style="color:#ffd6c0">{{ m.name }}</span> — {{ m.text }}</p>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font:500 10px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;color:#7d7392">Tips</span>
+          <sc-for list="{{ helpTips }}" as="tip" hint-placeholder-count="4">
+            <p style="margin:0;font:400 13px/1.65 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">· {{ tip }}</p>
+          </sc-for>
+        </div>
+        <button sc-camel-on-click="{{ closeHelp }}" style="min-height:52px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 12px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.16em;text-transform:uppercase;cursor:pointer">{{ helpCta }}</button>
       </div>
     </div>
   </sc-if>
@@ -353,7 +394,7 @@ class Component extends DCLogic {
     let skin = {}; try { skin = JSON.parse(LS.get('spin.skin') || '{}') || {}; } catch (e) {}
     if (skin.color || skin.shape) this.setState({ color: skin.color || 'plum', customBody: skin.customBody, customCap: skin.customCap, shape: skin.shape || 'tri' });
     const mode = LS.get('spin.mode'), period = LS.get('spin.period');
-    this.setState({ name: LS.get('spin.name') || '', mode: UNIT[mode] && !HIDDEN_MODES.includes(mode) ? mode : 'endurance', period: PERIODS.some(p => p[0] === period) ? period : 'all' });
+    this.setState({ showHelp: !LS.get('spin.helpSeen'), name: LS.get('spin.name') || '', mode: UNIT[mode] && !HIDDEN_MODES.includes(mode) ? mode : 'endurance', period: PERIODS.some(p => p[0] === period) ? period : 'all' });
     this._onEnd = e => {
       const { mode, score } = e.detail || e; if (!UNIT[mode] || !(score > 0)) return;
       const b = this.state.boards;
@@ -506,6 +547,34 @@ class Component extends DCLogic {
       moveDevice: () => this._moveLink(),
       openBoard: () => { this.setState({ showBoard: true, notice: '' }); this._load(); },
       closeBoard: () => this.setState({ showBoard: false, notice: '' }),
+      showHelp: !!this.state.showHelp,
+      openHelp: () => this.setState({ showHelp: true, custOpen: false, showBoard: false }),
+      closeHelp: () => { LS.set('spin.helpSeen', '1'); this.setState({ showHelp: false }); },
+      helpCta: LS.get('spin.helpSeen') ? 'Got it' : "Let's spin",
+      helpSteps: [
+        ['Flick to start', 'Swipe along the outer ring of the spinner (not the middle), like flicking a real one. Long, smooth swipes near the edge are strongest — the % after each swipe shows how good it was.'],
+        ['Swipe again as the ring lands', 'While it spins, a pink ring shrinks toward the edge of the spinner. Swipe again, in the same direction, just as it lands to boost the speed.'],
+        ['Chain perfects', 'Back-to-back perfect swipes build a combo — each one adds more speed than the last, up to ×10.'],
+        ['Watch your swipes', 'Each run has a few swipes (the dots under the score). When they run out, let it spin down — the run ends when the spinner stops.'],
+      ].map(([title, text], i) => ({ n: String(i + 1).padStart(2, '0'), title, text })),
+      helpWords: [
+        ['perfect', '#ffd6c0', 'Right on the ring. Big boost, combo +1, steadies wobble.'],
+        ['good', '#e9e7ff', 'Close enough. Normal boost, combo kept, a little wobble.'],
+        ['miss', '#ffb4a8', 'Too early or late. Loses ~18% speed and the combo.'],
+        ['reversed', '#ffb4a8', 'Swiped the wrong way. Loses ~45% speed.'],
+      ].map(([word, color, text]) => ({ word, color, text })),
+      helpModes: [
+        ['Endurance', '3 swipes. Score = total turns before it stops. Use “Skip to end ›” to fast-forward the spin-down.'],
+        ['Speed', '5 swipes. Score = the fastest it reached, in revolutions per second.'],
+        ['Zone', 'Keep the needle inside a moving band for 30 s. Swipe with the spin to speed up, against it to slow down.'],
+      ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).map(([name, text]) => ({ name, text })),
+      helpTips: [
+        'Above ~7 rev/s the spinner starts to wobble and loses speed faster — perfect swipes calm it down.',
+        'Extra speed gets harder to add the faster it already spins, so timing matters more than force.',
+        'Press and hold the centre cap to brake.',
+        'Ranking shows today, this week and all-time. Your name is tied to this device — use “Use on another device” on the board to move it.',
+        'The palette button changes colour and shape; the speaker button mutes sound.',
+      ],
       stop: e => e.stopPropagation(),
       soundText: on ? 'Sound on' : 'Sound off',
       soundLabel: on ? 'Mute sound' : 'Turn sound on',
