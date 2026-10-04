@@ -173,9 +173,12 @@
 html,body{margin:0;height:100%;background:#110b1d;color:#e9e7ff;-webkit-font-smoothing:antialiased;overflow:hidden;overscroll-behavior:none}
 a{color:#eaa3c4;text-decoration:none}
 a:hover{color:#ffd6c0}
+/* No text selection, callout menu or tap flash on long-press; typing fields stay normal. */
+*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 </style>
 
-<script src="assets/spinner.js?v=5"></script>
+<script src="assets/spinner.js?v=6"></script>
 <script src="assets/vs.js?v=4"></script>
 
 </helmet>
@@ -354,7 +357,7 @@ a:hover{color:#ffd6c0}
 
         <sc-if value="{{ vsShowLink }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="padding:14px 16px;border:1px dashed rgba(255,214,192,.3);border-radius:16px;font:400 12px/1.5 'Geist Mono',ui-monospace,monospace;color:#ffd6c0;word-break:break-all;user-select:all">{{ vsLink }}</div>
+            <div style="padding:14px 16px;border:1px dashed rgba(255,214,192,.3);border-radius:16px;font:400 12px/1.5 'Geist Mono',ui-monospace,monospace;color:#ffd6c0;word-break:break-all">{{ vsLink }}</div>
             <div style="display:flex;gap:8px">
               <button sc-camel-on-click="{{ vsShare }}" style="flex:1;min-height:52px;padding:0 20px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Send link</button>
               <button sc-camel-on-click="{{ vsCopy }}" style="min-height:48px;padding:0 18px;border:1px solid rgba(255,214,192,.35);border-radius:16px;background:rgba(255,255,255,.03);color:#e9e7ff;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vsCopyLabel }}</button>

@@ -160,6 +160,7 @@
       if (!this.style.height) this.style.height = '100%';
       const root = this._root = this.attachShadow({ mode: 'open' });
       root.innerHTML = `
+        <style>:host,*{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}</style>
         <div id="stage" style="position:absolute;inset:0;touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent"></div>
         <div id="flash" style="position:absolute;inset:0;pointer-events:none;background:radial-gradient(55% 45% at 50% 58%,rgba(255,214,230,.5),rgba(255,214,230,0) 70%);opacity:0"></div>
         <div id="hud" style="position:absolute;top:calc(max(20px,env(safe-area-inset-top)) + 58px);left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;transition:opacity .4s ease">
@@ -307,6 +308,7 @@
     }
     _bindPointer() {
       const el = this._stage; let drag = null;
+      el.addEventListener('contextmenu', e => e.preventDefault()); // long-press menu on Android
       el.addEventListener('pointerdown', e => {
         if (this._studio || this._remote) return;
         const p = this._at(e); if (!p) return;
