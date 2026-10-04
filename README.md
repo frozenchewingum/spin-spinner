@@ -16,7 +16,9 @@ A 3D fidget spinner you flick with your finger, with a rhythm-timing twist and g
 | **Speed** | The fastest spin you can reach. |
 | **Zone** *(hidden)* | Stay in the band for 30 seconds. |
 
-**VS:** tap **VS**, pick *Last one spinning* or *Speed race*, and send the link to a friend. When you're both ready, a shared 3-2-1 starts and you each see the other's spinner live in the corner.
+**VS:** tap **VS** and pick *Last one spinning* or *Speed race*.
+- **Online** — send the link to a friend. When you're both ready, a shared 3-2-1 starts and you each see the other's spinner live in the corner.
+- **Same phone** — split screen: lay the phone flat between you, one player per half (the top half faces the player opposite), both swiping at once.
 
 The rest is yours to discover.
 
@@ -49,7 +51,7 @@ It's a static site with no build step. GitHub Pages serves the files; Supabase s
 
 `<fidget-spinner>` is a self-contained custom element (shadow DOM + three.js canvas). Attributes: `mode` (`endurance` · `speed` · `zone`), `sound` (`true`/`false`), `color` (preset name or `custom:#body:#cap`), `shape` (`tri` · `bar` · `quad` · `star` · `wheel`).
 
-Extra attributes used by VS: `remote` (a watch-only copy with no input, sound or HUD), `locked` (ignore swipes) and `noskip` (hide *Skip to end*). Physics runs at a fixed 120 steps per second, so every device computes an identical spin-down.
+Extra attributes used by VS: `remote` (a watch-only copy with no input, sound or HUD), `locked` (ignore swipes), `noskip` (hide *Skip to end*), and for split screen `flip` (the page rotated it 180°; touches are mapped to match), `compact` (small HUD) and `quiet` (leaves the shared sound to the other spinner). Physics runs at a fixed 120 steps per second, so every device computes an identical spin-down.
 
 Events (bubble from the element): `spinswipe` `{ mode, word, sub, state }` after every swipe, `spinrunend` `{ mode, score, state }` when a run ends. `state` is a snapshot (`omega`, `angle`, `wob`, `beat`, run counters) that `applyRemote(state, word)` can load into a remote copy.
 

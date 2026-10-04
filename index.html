@@ -175,12 +175,14 @@ a{color:#eaa3c4;text-decoration:none}
 a:hover{color:#ffd6c0}
 </style>
 
-<script src="assets/spinner.js?v=4"></script>
+<script src="assets/spinner.js?v=5"></script>
 <script src="assets/vs.js?v=4"></script>
 
 </helmet>
 <main data-screen-label="Spinner" style="position:fixed;inset:0;background:#110b1d;overflow:hidden">
+  <sc-if value="{{ showMain }}" hint-placeholder-val="{{ true }}">
   <x-import component-from-global-scope="fidget-spinner" sound="{{ sound }}" color="{{ skinAttr }}" shape="{{ shape }}" mode="{{ playMode }}" studio="{{ studio }}" locked="{{ vsLocked }}" noskip="{{ vsNoskip }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
+  </sc-if>
   <header style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:max(20px,env(safe-area-inset-top)) 24px 0;pointer-events:none">
     <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}"><div style="font:italic 400 24px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff;letter-spacing:.01em">spin</div></sc-if><sc-if value="{{ embedded }}" hint-placeholder-val="{{ false }}"><div style="width:120px;height:44px"></div></sc-if>
     <div style="pointer-events:auto;display:flex;gap:8px">
@@ -328,6 +330,13 @@ a:hover{color:#ffd6c0}
         </div>
         <sc-if value="{{ vsText }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font:400 13px/1.6 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ vsText }}</p></sc-if>
 
+        <sc-if value="{{ vsPickWhere }}" hint-placeholder-val="{{ false }}">
+          <div role="radiogroup" aria-label="Where is your opponent" style="display:flex;gap:2px;padding:3px;border:1px solid rgba(255,214,192,.14);border-radius:999px">
+            <sc-for list="{{ vsWheres }}" as="vw" hint-placeholder-count="2">
+              <button role="radio" aria-checked="{{ vw.on }}" sc-camel-on-click="{{ vw.pick }}" style="flex:1;min-height:44px;border:0;border-radius:999px;background:{{ vw.bg }};color:{{ vw.fg }};font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vw.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
         <sc-if value="{{ vsAskName }}" hint-placeholder-val="{{ false }}">
           <input value="{{ name }}" sc-camel-on-change="{{ onName }}" maxlength="14" placeholder="Your name" aria-label="Your name" style="min-height:52px;padding:0 16px;border:1px solid rgba(255,214,192,.25);border-radius:16px;background:rgba(255,255,255,.05);color:#e9e7ff;font:400 17px/1 'Geist Mono',ui-monospace,monospace;outline:none">
         </sc-if>
@@ -371,6 +380,43 @@ a:hover{color:#ffd6c0}
           <button sc-camel-on-click="{{ vsSecondaryAct }}" style="min-height:48px;padding:0 18px;border:1px solid rgba(255,214,192,.35);border-radius:16px;background:rgba(255,255,255,.03);color:#e9e7ff;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vsSecondary }}</button>
         </sc-if>
       </div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ localOn }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:6;background:#110b1d">
+      <div style="position:absolute;left:0;right:0;top:0;height:50%;transform:rotate(180deg);overflow:hidden">
+        <x-import component-from-global-scope="fidget-spinner" player="2" compact="true" noskip="true" flip="true" quiet="true" sound="false" color="{{ skinAttr }}" shape="{{ shape }}" mode="{{ localMode }}" locked="{{ localLocked }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
+        <div style="position:absolute;left:14px;bottom:12px;font:italic 400 18px/1 'Instrument Serif',Georgia,serif;color:#c9bfd8;pointer-events:none">{{ localName2 }}</div>
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:0;height:50%;overflow:hidden">
+        <x-import component-from-global-scope="fidget-spinner" player="1" compact="true" noskip="true" sound="{{ sound }}" color="{{ skinAttr }}" shape="{{ shape }}" mode="{{ localMode }}" locked="{{ localLocked }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
+        <div style="position:absolute;left:14px;bottom:max(12px,env(safe-area-inset-bottom));font:italic 400 18px/1 'Instrument Serif',Georgia,serif;color:#c9bfd8;pointer-events:none">{{ localName1 }}</div>
+      </div>
+      <div style="position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,214,192,.25)"></div>
+      <button sc-camel-on-click="{{ localExit }}" aria-label="Leave split screen" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:1px solid rgba(255,214,192,.3);border-radius:999px;background:#110b1d;color:#c9bfd8;font:400 18px/1 'Geist Mono',monospace;cursor:pointer">×</button>
+      <sc-if value="{{ localCounting }}" hint-placeholder-val="{{ false }}">
+        <div aria-live="assertive" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-around;align-items:center;pointer-events:none;background:rgba(8,5,14,.35)">
+          <span style="transform:rotate(180deg);font:italic 400 96px/1 'Instrument Serif',Georgia,serif;color:#ffd6c0">{{ countText }}</span>
+          <span style="font:italic 400 96px/1 'Instrument Serif',Georgia,serif;color:#ffd6c0">{{ countText }}</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{ localResult }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,14,.7)">
+          <div role="dialog" aria-label="Result" style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid rgba(255,214,192,.18);border-radius:28px;background:rgba(17,11,29,.96)">
+            <span style="font:italic 400 34px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff">{{ localTitle }}</span>
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ localRows }}" as="lr" hint-placeholder-count="2">
+                <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:10px;padding:12px 14px;border-radius:12px;background:{{ lr.bg }}">
+                  <span style="font:italic 400 22px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff">{{ lr.name }}</span>
+                  <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.1em;color:{{ lr.color }}">{{ lr.score }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button sc-camel-on-click="{{ localAgain }}" style="min-height:52px;padding:0 20px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Rematch</button>
+            <button sc-camel-on-click="{{ localExit }}" style="min-height:48px;padding:0 18px;border:1px solid rgba(255,214,192,.35);border-radius:16px;background:rgba(255,255,255,.03);color:#e9e7ff;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Done</button>
+          </div>
+        </div>
+      </sc-if>
     </div>
   </sc-if>
   <sc-if value="{{ custOpen }}" hint-placeholder-val="{{ false }}">
@@ -469,7 +515,7 @@ class Component extends DCLogic {
     this.setState({ showHelp: !LS.get('spin.helpSeen'), name: LS.get('spin.name') || '', mode: UNIT[mode] && !HIDDEN_MODES.includes(mode) ? mode : 'endurance', period: PERIODS.some(p => p[0] === period) ? period : 'all' });
     this._onEnd = e => {
       const { mode, score } = e.detail || e; if (!UNIT[mode] || !(score > 0)) return;
-      if (this._match) return;
+      if (this._match || this.state.local) return;
       const b = this.state.boards;
       if (b && b[mode]) {
         // Ask to save only when the run beats this player's best for today (which also covers week and all-time).
@@ -484,7 +530,11 @@ class Component extends DCLogic {
     window.__onSpinEnd = this._onEnd;
     this._load();
     window.addEventListener('spinswipe', e => { if (this._match && e.detail) this._match.localSwipe(e.detail); });
-    window.addEventListener('spinrunend', e => { if (this._match && e.detail) this._match.localEnd(e.detail.score); });
+    window.addEventListener('spinrunend', e => {
+      if (this._match && e.detail) this._match.localEnd(e.detail.score);
+      const pl = e.target && e.target.getAttribute && e.target.getAttribute('player');
+      if (pl && e.detail) this._localScore(+pl, e.detail.score);
+    });
     const code = new URLSearchParams(location.search).get('vs');
     if (code && window.SpinVS && SpinVS.codeOk(code)) {
       this._vsCode = code;
@@ -545,6 +595,53 @@ class Component extends DCLogic {
     });
     this.setState({ vsUi: 'match', vs: Object.assign({}, this._match.s), showHelp: false, showBoard: false, custOpen: false, pending: null, vsErr: '' });
   }
+  _localStart(mode) {
+    clearTimeout(this._lt1); clearTimeout(this._lt2);
+    document.querySelectorAll('fidget-spinner[player]').forEach(el => el.resetRun());
+    this.setState({ vsUi: null, local: { phase: 'countdown', mode, scores: [null, null], startAt: Date.now() + 3000 } });
+    if (!this._tick) this._tick = setInterval(() => this.setState({ tick: Date.now() }), 200);
+    // Start the 3-2-1 only once both spinners have finished building their 3D scenes.
+    const ready = () => [...document.querySelectorAll('fidget-spinner[player]')].filter(el => el._renderer).length === 2;
+    const go = () => {
+      if (!this.state.local) return;
+      if (!ready()) { this._lt1 = setTimeout(go, 100); return; }
+      this.setState({ local: Object.assign({}, this.state.local, { startAt: Date.now() + 3000 }) });
+      this._lt1 = setTimeout(begin, 3000);
+    };
+    const begin = () => {
+      if (!this.state.local) return;
+      this.setState({ local: Object.assign({}, this.state.local, { phase: 'playing' }) });
+      // Nobody swipes for 20 s → that player scores 0.
+      this._lt2 = setTimeout(() => [1, 2].forEach(p => { const el = document.querySelector('fidget-spinner[player="' + p + '"]'); if (el && !el._run && !el.omega) this._localScore(p, 0); }), 20000);
+    };
+    this._lt1 = setTimeout(go, 50);
+  }
+  _localScore(p, score) {
+    const l = this.state.local; if (!l || l.phase !== 'playing' || l.scores[p - 1] != null) return;
+    const scores = l.scores.slice(); scores[p - 1] = score;
+    const done = scores.every(s => s != null);
+    if (done) { clearTimeout(this._lt2); if (this._tick && !this._match) { clearInterval(this._tick); this._tick = null; } }
+    this.setState({ local: Object.assign({}, l, { scores, phase: done ? 'result' : 'playing' }) });
+  }
+  _localExit() {
+    clearTimeout(this._lt1); clearTimeout(this._lt2);
+    if (this._tick && !this._match) { clearInterval(this._tick); this._tick = null; }
+    this.setState({ local: null });
+  }
+  _localVals() {
+    const l = this.state.local;
+    if (!l) return { localOn: false, showMain: true, localLocked: 'true', localMode: 'endurance', localCounting: false, localResult: false };
+    const f = FMT[l.mode], u = UNIT[l.mode], [a, b] = l.scores;
+    const win = l.phase === 'result' ? (a > b ? 1 : b > a ? 2 : 0) : null;
+    return {
+      localOn: true, showMain: false, localMode: l.mode, localLocked: l.phase === 'playing' ? 'false' : 'true',
+      localCounting: l.phase === 'countdown', countText: String(Math.max(1, Math.ceil((l.startAt - Date.now()) / 1000))),
+      localName1: 'Player 1' + (a != null && l.phase === 'playing' ? ' · done' : ''), localName2: 'Player 2' + (b != null && l.phase === 'playing' ? ' · done' : ''),
+      localResult: l.phase === 'result', localTitle: win === 0 ? "It's a draw" : 'Player ' + win + ' wins!',
+      localRows: [['Player 1', a, win === 1], ['Player 2', b, win === 2]].map(([name, s, w]) => ({ name, score: f(s || 0) + ' ' + u, color: w ? '#ffd6c0' : '#9a90ae', bg: w ? 'rgba(234,163,196,.14)' : 'rgba(255,255,255,.03)' })),
+      localAgain: () => this._localStart(l.mode), localExit: () => this._localExit(),
+    };
+  }
   _vsLeave() {
     if (this._match) this._match.leave();
     this._match = null; if (this._tick) { clearInterval(this._tick); this._tick = null; }
@@ -565,7 +662,7 @@ class Component extends DCLogic {
   }
   _vsVals() {
     const ui = this.state.vsUi, s = this.state.vs, m = this._match, name = (this.state.name || '').trim() || 'You';
-    const v = { vsPanel: false, vsTitle: 'VS', vsText: '', vsAskName: false, vsPickMode: false, vsShowLink: false, vsShowPlayers: false, vsPlayers: [],
+    const v = { vsPickWhere: false, vsWheres: [], vsPanel: false, vsTitle: 'VS', vsText: '', vsAskName: false, vsPickMode: false, vsShowLink: false, vsShowPlayers: false, vsPlayers: [],
       vsPrimary: '', vsSecondary: '', vsPrimaryAct: () => {}, vsSecondaryAct: () => this._vsLeave(), vsClose: () => this._vsLeave(),
       vsShowOpp: false, vsCountdown: false, vsBar: false, countText: '', countSub: '', barText: '', oppName: '', oppScore: '', oppStatus: '',
       oppColor: 'plum', oppShape: 'tri', vsLocked: 'false', vsNoskip: 'false', vsLink: m ? m.link : '', vsCopyLabel: this.state.vsCopied ? 'Copied' : 'Copy',
@@ -576,8 +673,17 @@ class Component extends DCLogic {
       return { label: VS_MODES[id][0], text: VS_MODES[id][1], on: on ? 'true' : 'false', fg: on ? '#ffd6c0' : '#e9e7ff', bg: on ? 'rgba(234,163,196,.12)' : 'transparent', border: on ? 'rgba(234,163,196,.6)' : 'rgba(255,214,192,.14)',
         pick: () => { LS.set('spin.vsMode', id); this.setState({ vsMode: id }); if (m) m.setMode(id); } };
     }) };
-    if (ui === 'setup') return Object.assign(v, modePick, { vsPanel: true, vsText: 'Challenge a friend live. Send them a link — when they open it, you both spin at the same time.' + (this.state.vsErr ? ' ' + this.state.vsErr + '.' : ''),
-      vsAskName: true, vsPrimary: 'Create link', vsPrimaryAct: () => this._vsOpen(null), vsSecondary: '', vsClose: () => this.setState({ vsUi: null }) });
+    if (ui === 'setup') {
+      const where = this.state.vsWhere || 'online', here = where === 'local';
+      const wheres = [['online', 'Online'], ['local', 'Same phone']].map(([id, label]) => {
+        const on = id === where;
+        return { label, on: on ? 'true' : 'false', bg: on ? 'rgba(234,163,196,.18)' : 'transparent', fg: on ? '#ffd6c0' : '#9a90ae', pick: () => { LS.set('spin.vsWhere', id); this.setState({ vsWhere: id }); } };
+      });
+      return Object.assign(v, modePick, { vsPanel: true, vsPickWhere: true, vsWheres: wheres,
+        vsText: here ? 'Split screen: one player on each half, both swiping at the same time. Sit facing each other with the phone flat between you.'
+          : 'Challenge a friend live. Send them a link — when they open it, you both spin at the same time.' + (this.state.vsErr ? ' ' + this.state.vsErr + '.' : ''),
+        vsAskName: !here, vsPrimary: here ? 'Start' : 'Create link', vsPrimaryAct: () => here ? this._localStart(mode) : this._vsOpen(null), vsSecondary: '', vsClose: () => this.setState({ vsUi: null }) });
+    }
     if (ui === 'joinName') return Object.assign(v, { vsPanel: true, vsTitle: "You've been challenged", vsText: 'Pick a name so your opponent knows who they are up against.' + (this.state.vsErr ? ' ' + this.state.vsErr + '.' : ''),
       vsAskName: true, vsPrimary: 'Join match', vsPrimaryAct: () => this._vsOpen(this._vsCode), vsSecondary: 'Not now' });
     if (!s) return v;
@@ -649,11 +755,12 @@ class Component extends DCLogic {
     const defs = [['plum', 'Plum', '#5b3a78'], ['rose', 'Rose', '#c9708f'], ['ink', 'Ink', '#2a2f5c'], ['chrome', 'Chrome', 'linear-gradient(135deg,#fff,#9b97ad 55%,#e9e6f2)'], ['gold', 'Gold', 'linear-gradient(135deg,#ffe3a6,#b07d35 55%,#f2c77c)'], ['glass', 'Glass', 'radial-gradient(circle at 35% 30%,#fff,rgba(243,217,255,.35) 60%)'], ['matte', 'Matte', '#1d1a26']];
     const cb = this.state.customBody || '#3f8f8a', cc = this.state.customCap || '#ffd6c0', isC = this.state.color === 'custom';
     const saveSkin = st => { this.setState(st); const n = { ...this.state, ...st }; LS.set('spin.skin', JSON.stringify({ color: n.color, customBody: n.customBody, customCap: n.customCap, shape: n.shape })); };
-    const vsv = this._vsVals();
+    const vsv = this._vsVals(), lv = this._localVals();
     return {
       ...vsv,
+      ...lv,
       playMode: this.state.vs && this.state.vs.mode ? this.state.vs.mode : mode,
-      openVs: () => { if (this.state.vsUi) return; this.setState({ vsUi: 'setup', vsMode: this.state.vsMode || LS.get('spin.vsMode') || 'endurance', showHelp: false, showBoard: false, custOpen: false, vsErr: '' }); },
+      openVs: () => { if (this.state.vsUi) return; this.setState({ vsUi: 'setup', vsWhere: this.state.vsWhere || LS.get('spin.vsWhere') || 'online', vsMode: this.state.vsMode || LS.get('spin.vsMode') || 'endurance', showHelp: false, showBoard: false, custOpen: false, vsErr: '' }); },
       showTitle: !this.props.embedded, embedded: !!this.props.embedded,
       sound: on ? 'on' : 'off',
       mode, unit,
@@ -737,7 +844,7 @@ class Component extends DCLogic {
         ['Endurance', 'as many turns as you can.'],
         ['Speed', 'the fastest spin you can reach.'],
         ['Zone', 'stay in the band for 30 seconds.'],
-      ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).concat([['VS', 'challenge a friend live — tap VS and send them the link.']]).map(([name, text]) => ({ name, text })),
+      ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).concat([['VS', 'challenge a friend — online with a link, or split screen on one phone.']]).map(([name, text]) => ({ name, text })),
       stop: e => e.stopPropagation(),
       soundText: on ? 'Sound on' : 'Sound off',
       soundLabel: on ? 'Mute sound' : 'Turn sound on',

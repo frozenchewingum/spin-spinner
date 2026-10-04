@@ -129,7 +129,12 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   class FidgetSpinner extends HTMLElement {
-    static get observedAttributes() { return ['sound', 'color', 'mode', 'shape', 'studio', 'remote', 'locked', 'noskip']; }
+    static get observedAttributes() { return ['sound', 'color', 'mode', 'shape', 'studio', 'remote', 'locked', 'noskip', 'flip', 'compact', 'quiet']; }
+    // flip: the page has rotated this spinner 180° for a player sitting opposite; touches are mapped to match. compact: small HUD for half-screen use.
+    // quiet: never touches the shared audio engine (a second local spinner).
+    set flip(v) { this._flip = v !== null && parseBool(v); } get flip() { return !!this._flip; }
+    set compact(v) { this._compact = v !== null && parseBool(v); if (this._hud) this._applyCompact(); } get compact() { return !!this._compact; }
+    set quiet(v) { this._quiet = v !== null && parseBool(v); } get quiet() { return !!this._quiet; }
     // remote: a watch-only replica driven by applyRemote(); no input, no sound, no HUD, never fires spinend.
     set remote(v) { this._remote = parseBool(v) && v !== null; if (this._hud) this._applyRemoteUi(); } get remote() { return !!this._remote; }
     // locked: ignore swipes (e.g. before a VS countdown ends). noskip: hide 'Skip to end'.
@@ -144,9 +149,9 @@
     }
     set mode(v) { if (MODES[v] && v !== this._p.mode) { this._p.mode = v; this.omega = 0; this._run = null; this._combo = 0; this._wob = 0; this._lastScore = null; this._swKey = ''; } }
     get mode() { return this._p.mode; }
-    set sound(v) { this._p.sound = parseBool(v); if (this._remote) return; _soundOn = this._p.sound; if (!_soundOn) sleepAudio(); } get sound() { return this._p.sound; }
+    set sound(v) { this._p.sound = parseBool(v); if (this._remote || this._quiet) return; _soundOn = this._p.sound; if (!_soundOn) sleepAudio(); } get sound() { return this._p.sound; }
     set color(v) { if (parseSkin(v)) { this._p.color = v; this._applyColor(); } } get color() { return this._p.color; }
-    attributeChangedCallback(n, o, v) { if (v === null && (n === 'remote' || n === 'locked' || n === 'noskip')) { this[n] = null; return; } this[n] = v; }
+    attributeChangedCallback(n, o, v) { if (v === null && ['remote', 'locked', 'noskip', 'flip', 'compact', 'quiet'].includes(n)) { this[n] = null; return; } this[n] = v; }
 
     connectedCallback() {
       if (this._root) return;
@@ -181,14 +186,14 @@
       this._skipEl = $('skip'); this._skipEl.addEventListener('click', () => this.skip());
       this._hud = $('hud'); this._hud.style.opacity = this._studio ? 0 : 1;
       this._judgeEl = $('judge'); this._jw = $('jw'); this._cb = $('cb'); this._flashEl = $('flash');
-      this._applyRemoteUi();
+      this._applyRemoteUi(); this._applyCompact();
       loadThree().then(T => { if (this.isConnected) this._init(T); });
     }
     disconnectedCallback() {
       cancelAnimationFrame(this._raf); this._ro && this._ro.disconnect();
       if (this._renderer) { this._renderer.dispose(); this._renderer.forceContextLoss(); }
       if (A.ctx) { const t = A.ctx.currentTime; [A.whirr.gain, A.humG.gain].forEach(p => { p.cancelScheduledValues(t); p.setValueAtTime(0, t); }); }
-      if (!this._remote) sleepAudio();
+      if (!this._remote && !this._quiet) sleepAudio();
       this._renderer = null; this._root = null; if (this.shadowRoot) this.shadowRoot.innerHTML = '';
     }
 
@@ -295,7 +300,9 @@
     }
     _at(e) {
       const r = this._stage.getBoundingClientRect();
-      this._ray.setFromCamera(new this.T.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), this._cam);
+      let nx = ((e.clientX - r.left) / r.width) * 2 - 1, ny = -((e.clientY - r.top) / r.height) * 2 + 1;
+      if (this._flip) { nx = -nx; ny = -ny; }
+      this._ray.setFromCamera(new this.T.Vector2(nx, ny), this._cam);
       const v = new this.T.Vector3(); return this._ray.ray.intersectPlane(this._plane, v) ? v : null;
     }
     _bindPointer() {
@@ -304,9 +311,9 @@
         if (this._studio || this._remote) return;
         const p = this._at(e); if (!p) return;
         el.setPointerCapture(e.pointerId); el.style.cursor = 'grabbing';
-        if (this._p.sound) audio();
+        if (this._p.sound && !this._quiet) audio();
         const rad = Math.hypot(p.x, p.z);
-        if (rad < 0.38) { this._brake = true; this._caps.forEach(c => c.scale.y = 0.7); if (this._p.sound && A.ctx) click(0.06); return; }
+        if (rad < 0.38) { this._brake = true; this._caps.forEach(c => c.scale.y = 0.7); if (this._p.sound && A.ctx && !this._quiet) click(0.06); return; }
         const a = Math.atan2(-p.z, p.x);
         drag = { s: [{ a, t: performance.now(), r: rad }], raw: a, un: a, arc: 0 };
       });
@@ -349,6 +356,14 @@
       if (word) { this._say(word, sub); if (word === 'perfect') { this._flash = 1; } }
     }
     resetRun() { this.omega = 0; this._run = null; this._combo = 0; this._wob = 0; this._lastScore = null; this._brake = false; this._swKey = ''; }
+    _applyCompact() {
+      const c = !!this._compact;
+      this._hud.style.top = c ? '10px' : 'calc(max(20px,env(safe-area-inset-top)) + 58px)';
+      this._hud.style.gap = c ? '2px' : '6px';
+      this._scoreEl.style.fontSize = c ? '38px' : '60px';
+      this._judgeEl.style.height = c ? '34px' : '52px';
+      this._jw.style.fontSize = c ? '22px' : '30px';
+    }
     _applyRemoteUi() {
       if (!this._hud) return;
       const r = !!this._remote;
@@ -378,7 +393,7 @@
       const edge = meanR > 0.9 && meanR < 2.1 ? 1 : 0.6;
       const arcF = clamp(d.arc / 1.6, 0.25, 1);
       const q = smooth * edge * arcF;
-      const m = MODES[this._p.mode], snd = this._p.sound && A.ctx;
+      const m = MODES[this._p.mode], snd = this._p.sound && A.ctx && !this._quiet;
       this._hint.style.opacity = 0;
       if (this._run && this._run.used >= m.budget) { this._say('no swipes left', 'let it spin out'); return; }
       const I = Math.min(Math.abs(v), 70) * (0.35 + 0.65 * q);
@@ -462,7 +477,7 @@
           this._say('done', m.fmt(score) + ' ' + m.unit);
           if (this._remote) return;
           this._emit('spinrunend', { score });
-          if (score > 0) { const detail = { mode, score }; window.__lastSpin = detail; try { window.dispatchEvent(new CustomEvent('spinend', { detail })); } catch (e) {} if (typeof window.__onSpinEnd === 'function') { try { window.__onSpinEnd(detail); } catch (e) {} } }
+          if (score > 0 && !this._quiet) { const detail = { mode, score }; window.__lastSpin = detail; try { window.dispatchEvent(new CustomEvent('spinend', { detail })); } catch (e) {} if (typeof window.__onSpinEnd === 'function') { try { window.__onSpinEnd(detail); } catch (e) {} } }
         }
       }
 
@@ -539,11 +554,11 @@
       this._judgeEl.style.transform = 'scale(' + (1 + Math.max(0, 0.12 - ja * 0.6)).toFixed(3) + ')';
 
       // Spinner stopped for 15 s of real time: put the sound engine to sleep until the next tap.
-      if (!this._remote) {
+      if (!this._remote && !this._quiet) {
       if (rps > 0.02 || _asleep || !A.ctx) this._busyT = now;
       else if (now - (this._busyT || now) > 15000) sleepAudio();
       }
-      if (A.ctx && !_asleep && !this._remote) {
+      if (A.ctx && !_asleep && !this._remote && !this._quiet) {
         const on = this._p.sound && rps > 0.02, t = A.ctx.currentTime, lob = rps * 3;
         const g = on ? Math.min(0.22, rps * 0.04) : 0;
         A.whirr.gain.setTargetAtTime(g, t, 0.05);
