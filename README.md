@@ -21,4 +21,12 @@ Live: https://frozenchewingum.github.io/spin-spinner/
 - **Score limits** from the engine — Endurance ≤ 3000 turns, Zone ≤ 30 s, Speed ≤ 64 rev/s.
 - If Supabase can't be reached, runs are kept on the device and the board says so.
 
-The browser talks to two database functions: `spin_boards` (read) and `submit_spin_run` (save). The tables themselves aren't readable or writable from the browser.
+## Sound and battery
+
+The sound engine sleeps whenever the page is hidden (screen off, app switched, tab changed), when sound is muted, or after 15 seconds with the spinner still. It wakes on the next tap, so the phone no longer shows the page as playing media in the background.
+
+## Security
+
+- The page has a Content Security Policy: it can only load its own files and talk to this Supabase project.
+- Player names are always shown as plain text.
+- The browser talks to two database functions: `spin_boards` (read) and `submit_spin_run` (save). Everything else, including the tables, is closed to the browser (see `supabase/004_security_hardening.sql`).

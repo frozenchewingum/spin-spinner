@@ -65,12 +65,24 @@
       A.hum.connect(A.humF); A.humF.connect(A.humG); A.humG.connect(A.master);
       n.start(); A.lfo.start(); A.hum.start();
     }
-    if (A.ctx.state !== 'running') A.ctx.resume();
+    if (A.ctx.state !== 'running' && !_asleep && !document.hidden) A.ctx.resume();
     return A.ctx;
   }
 
-  let _unlocked = false;
+  let _unlocked = false, _soundOn = true, _asleep = false;
+  // Stop everything that makes the phone treat the page as a media player: the looping silent track,
+  // the always-running whirr/hum oscillators, and the 'playback' audio session. Woken by the next tap.
+  function sleepAudio() {
+    _asleep = true; _unlocked = false;
+    try { if (_silentEl) { _silentEl.pause(); _silentEl.removeAttribute('src'); _silentEl.load(); } } catch (e) {}
+    _silentEl = window.__dsSilentAudio = null;
+    try { if (A.ctx && A.ctx.state === 'running') A.ctx.suspend(); } catch (e) {}
+    try { if (navigator.audioSession) navigator.audioSession.type = 'auto'; } catch (e) {}
+    try { if (navigator.mediaSession) navigator.mediaSession.playbackState = 'none'; } catch (e) {}
+  }
   function unlockAudio() {
+    if (!_soundOn || document.hidden) return;
+    _asleep = false;
     try { if (navigator.audioSession && navigator.audioSession.type !== 'playback') navigator.audioSession.type = 'playback'; } catch (e) {}
     playSilentEl();
     const c = audio(); if (!c) return;
@@ -80,7 +92,11 @@
     if (c.state === 'running') _unlocked = true;
   }
   ['touchend', 'pointerup', 'click', 'keydown'].forEach(ev => document.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
-  document.addEventListener('visibilitychange', () => { if (!document.hidden && A.ctx && A.ctx.state !== 'running') A.ctx.resume(); });
+  // Screen off, app switched, tab hidden or page closing: go fully silent. Sound returns on the next tap.
+  document.addEventListener('visibilitychange', () => { if (document.hidden) sleepAudio(); });
+  window.addEventListener('pagehide', sleepAudio);
+  document.addEventListener('freeze', sleepAudio);
+  window.addEventListener('blur', () => { if (document.hidden) sleepAudio(); });
   function click(gain) {
     const c = A.ctx; if (!c) return; const t = c.currentTime;
     const o = c.createOscillator(), g = c.createGain(); o.type = 'sine';
@@ -123,7 +139,7 @@
     }
     set mode(v) { if (MODES[v] && v !== this._p.mode) { this._p.mode = v; this.omega = 0; this._run = null; this._combo = 0; this._wob = 0; this._lastScore = null; this._swKey = ''; } }
     get mode() { return this._p.mode; }
-    set sound(v) { this._p.sound = parseBool(v); } get sound() { return this._p.sound; }
+    set sound(v) { this._p.sound = parseBool(v); _soundOn = this._p.sound; if (!_soundOn) sleepAudio(); } get sound() { return this._p.sound; }
     set color(v) { if (parseSkin(v)) { this._p.color = v; this._applyColor(); } } get color() { return this._p.color; }
     attributeChangedCallback(n, o, v) { this[n] = v; }
 
@@ -166,6 +182,7 @@
       cancelAnimationFrame(this._raf); this._ro && this._ro.disconnect();
       if (this._renderer) { this._renderer.dispose(); this._renderer.forceContextLoss(); }
       if (A.ctx) { const t = A.ctx.currentTime; [A.whirr.gain, A.humG.gain].forEach(p => { p.cancelScheduledValues(t); p.setValueAtTime(0, t); }); }
+      sleepAudio();
       this._renderer = null; this._root = null; if (this.shadowRoot) this.shadowRoot.innerHTML = '';
     }
 
@@ -468,7 +485,10 @@
       this._judgeEl.style.opacity = clamp(ja < 0.08 ? ja / 0.08 : 1 - (ja - 0.9) / 0.5, 0, 1).toFixed(3);
       this._judgeEl.style.transform = 'scale(' + (1 + Math.max(0, 0.12 - ja * 0.6)).toFixed(3) + ')';
 
-      if (A.ctx) {
+      // Spinner stopped for 15 s of real time: put the sound engine to sleep until the next tap.
+      if (rps > 0.02 || _asleep || !A.ctx) this._busyT = now;
+      else if (now - (this._busyT || now) > 15000) sleepAudio();
+      if (A.ctx && !_asleep) {
         const on = this._p.sound && rps > 0.02, t = A.ctx.currentTime, lob = rps * 3;
         const g = on ? Math.min(0.22, rps * 0.04) : 0;
         A.whirr.gain.setTargetAtTime(g, t, 0.05);
