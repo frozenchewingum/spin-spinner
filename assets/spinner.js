@@ -129,7 +129,12 @@
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
   class FidgetSpinner extends HTMLElement {
-    static get observedAttributes() { return ['sound', 'color', 'mode', 'shape', 'studio']; }
+    static get observedAttributes() { return ['sound', 'color', 'mode', 'shape', 'studio', 'remote', 'locked', 'noskip']; }
+    // remote: a watch-only replica driven by applyRemote(); no input, no sound, no HUD, never fires spinend.
+    set remote(v) { this._remote = parseBool(v) && v !== null; if (this._hud) this._applyRemoteUi(); } get remote() { return !!this._remote; }
+    // locked: ignore swipes (e.g. before a VS countdown ends). noskip: hide 'Skip to end'.
+    set locked(v) { this._locked = v !== null && parseBool(v); } get locked() { return !!this._locked; }
+    set noskip(v) { this._noskip = v !== null && parseBool(v); } get noskip() { return !!this._noskip; }
     set studio(v) { this._studio = parseBool(v); if (this._hud) this._hud.style.opacity = this._studio ? 0 : 1; } get studio() { return !!this._studio; }
     set shape(v) { if (SHAPES[v] && v !== this._p.shape) { this._p.shape = v; this._buildBody(); } } get shape() { return this._p.shape; }
     constructor() {
@@ -139,9 +144,9 @@
     }
     set mode(v) { if (MODES[v] && v !== this._p.mode) { this._p.mode = v; this.omega = 0; this._run = null; this._combo = 0; this._wob = 0; this._lastScore = null; this._swKey = ''; } }
     get mode() { return this._p.mode; }
-    set sound(v) { this._p.sound = parseBool(v); _soundOn = this._p.sound; if (!_soundOn) sleepAudio(); } get sound() { return this._p.sound; }
+    set sound(v) { this._p.sound = parseBool(v); if (this._remote) return; _soundOn = this._p.sound; if (!_soundOn) sleepAudio(); } get sound() { return this._p.sound; }
     set color(v) { if (parseSkin(v)) { this._p.color = v; this._applyColor(); } } get color() { return this._p.color; }
-    attributeChangedCallback(n, o, v) { this[n] = v; }
+    attributeChangedCallback(n, o, v) { if (v === null && (n === 'remote' || n === 'locked' || n === 'noskip')) { this[n] = null; return; } this[n] = v; }
 
     connectedCallback() {
       if (this._root) return;
@@ -176,20 +181,21 @@
       this._skipEl = $('skip'); this._skipEl.addEventListener('click', () => this.skip());
       this._hud = $('hud'); this._hud.style.opacity = this._studio ? 0 : 1;
       this._judgeEl = $('judge'); this._jw = $('jw'); this._cb = $('cb'); this._flashEl = $('flash');
+      this._applyRemoteUi();
       loadThree().then(T => { if (this.isConnected) this._init(T); });
     }
     disconnectedCallback() {
       cancelAnimationFrame(this._raf); this._ro && this._ro.disconnect();
       if (this._renderer) { this._renderer.dispose(); this._renderer.forceContextLoss(); }
       if (A.ctx) { const t = A.ctx.currentTime; [A.whirr.gain, A.humG.gain].forEach(p => { p.cancelScheduledValues(t); p.setValueAtTime(0, t); }); }
-      sleepAudio();
+      if (!this._remote) sleepAudio();
       this._renderer = null; this._root = null; if (this.shadowRoot) this.shadowRoot.innerHTML = '';
     }
 
     _init(T) {
       this.T = T;
       const r = this._renderer = new T.WebGLRenderer({ antialias: true });
-      r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      r.setPixelRatio(this._remote ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2));
       r.shadowMap.enabled = true; r.shadowMap.type = T.PCFSoftShadowMap;
       r.toneMapping = T.ACESFilmicToneMapping; r.toneMappingExposure = 1.2;
       r.domElement.style.cssText = 'display:block;width:100%;height:100%';
@@ -238,7 +244,7 @@
       this._ray = new T.Raycaster(); this._plane = new T.Plane(new T.Vector3(0, 1, 0), -0.32);
       this._bindPointer();
       this._ro = new ResizeObserver(() => this._resize()); this._ro.observe(this); this._resize();
-      this._last = null; this._lobePhase = 0; this._t = 0;
+      this._last = null; this._lobePhase = 0; this._t = 0; this._acc = 0;
       const loop = now => { this._raf = requestAnimationFrame(loop); this._frame(now); };
       this._raf = requestAnimationFrame(loop);
     }
@@ -295,7 +301,7 @@
     _bindPointer() {
       const el = this._stage; let drag = null;
       el.addEventListener('pointerdown', e => {
-        if (this._studio) return;
+        if (this._studio || this._remote) return;
         const p = this._at(e); if (!p) return;
         el.setPointerCapture(e.pointerId); el.style.cursor = 'grabbing';
         if (this._p.sound) audio();
@@ -320,9 +326,43 @@
       el.addEventListener('pointerup', up); el.addEventListener('pointercancel', () => { drag = null; up(); });
     }
 
-    _say(word, sub) { this._jw.textContent = word; this._cb.textContent = sub || ''; this._judgeT = this._t; }
+    _say(word, sub) { this._jw.textContent = word; this._cb.textContent = sub || ''; this._judgeT = this._t; this._said = [word, sub || '']; }
+    // Snapshot of everything a replica needs to continue the spin by itself.
+    snapshot() {
+      const r = this._run;
+      return { omega: this.omega, angle: this.angle, wob: this._wob, beat: this._beat, brake: !!this._brake,
+        run: r ? { used: r.used, turns: r.turns, peak: r.peak, zone: r.zone, t: this._t - r.t0 } : null, last: this._lastScore };
+    }
+    _emit(type, extra) {
+      if (this._remote) return;
+      const detail = Object.assign({ mode: this._p.mode, state: this.snapshot() }, extra || {});
+      try { this.dispatchEvent(new CustomEvent(type, { detail, bubbles: true, composed: true })); } catch (e) {}
+    }
+    // Drive a remote replica from a received snapshot. Between snapshots it spins down by the same fixed-step physics.
+    applyRemote(s, word, sub) {
+      if (!s) return;
+      this.omega = s.omega; this.angle = s.angle; this._wob = s.wob; this._beat = s.beat || 0; this._brake = !!s.brake;
+      if (s.run) {
+        if (!this._run) this._run = { used: 0, turns: 0, zone: 0, peak: 0, score: 0, t0: this._t, inZone: false };
+        Object.assign(this._run, { used: s.run.used, turns: s.run.turns, peak: s.run.peak, zone: s.run.zone, t0: this._t - (s.run.t || 0) });
+      } else { this._run = null; this._lastScore = s.last; }
+      if (word) { this._say(word, sub); if (word === 'perfect') { this._flash = 1; } }
+    }
+    resetRun() { this.omega = 0; this._run = null; this._combo = 0; this._wob = 0; this._lastScore = null; this._brake = false; this._swKey = ''; }
+    _applyRemoteUi() {
+      if (!this._hud) return;
+      const r = !!this._remote;
+      this._hud.style.display = r ? 'none' : 'flex'; this._hint.style.display = r ? 'none' : 'block';
+      this._stage.style.cursor = r ? 'default' : 'grab'; this._stage.style.touchAction = r ? 'auto' : 'none';
+    }
 
     _flick(d) {
+      if (this._locked || this._remote) return;
+      this._said = null;
+      this._flickInner(d);
+      if (this._said) this._emit('spinswipe', { word: this._said[0], sub: this._said[1] });
+    }
+    _flickInner(d) {
       const s = d.s, now = performance.now(), last = s[s.length - 1];
       if (s.length < 2 || now - last.t > 120) return;
       let k = s.length - 1; while (k > 0 && last.t - s[k - 1].t < 90) k--;
@@ -383,7 +423,7 @@
       this._run.used++;
     }
     skip() {
-      const r = this._run; if (!r || this._p.mode !== 'endurance') return;
+      const r = this._run; if (!r || this._p.mode !== 'endurance' || this._noskip || this._remote) return;
       let w = this.omega, wob = this._wob, turns = 0; const h = 1 / 120;
       for (let i = 0; i < 120 * 600 && w !== 0; i++) {
         const sg = Math.sign(w), rps = Math.abs(w) / (Math.PI * 2);
@@ -397,9 +437,9 @@
     }
     _period(rps) { return clamp(1.3 - rps * 0.045, 0.6, 1.3); }
 
-    _frame(now) {
-      if (this._last === null) this._last = now;
-      const dt = Math.min(0.05, (now - this._last) / 1000); this._last = now; this._t += dt;
+    // Physics runs at a fixed 120 Hz so every device (and every remote replica) computes the same spin-down.
+    _step(dt) {
+      this._t += dt;
       const mode = this._p.mode, m = MODES[mode], run = this._run;
       let w = this.omega; const sgn = Math.sign(w);
       const Z = mode === 'zone';
@@ -420,11 +460,24 @@
           const score = Math.round(run.score * 10) / 10;
           this._lastScore = score; this._run = null; this._combo = 0;
           this._say('done', m.fmt(score) + ' ' + m.unit);
+          if (this._remote) return;
+          this._emit('spinrunend', { score });
           if (score > 0) { const detail = { mode, score }; window.__lastSpin = detail; try { window.dispatchEvent(new CustomEvent('spinend', { detail })); } catch (e) {} if (typeof window.__onSpinEnd === 'function') { try { window.__onSpinEnd(detail); } catch (e) {} } }
         }
       }
 
       this._beat = (this._beat + dt / this._period(rps)) % 1;
+    }
+
+    _frame(now) {
+      if (this._last === null) this._last = now;
+      const dt = Math.min(0.05, (now - this._last) / 1000), real = Math.min(0.25, (now - this._last) / 1000); this._last = now;
+      const H = 1 / 120;
+      this._acc += real;
+      while (this._acc >= H) { this._step(H); this._acc -= H; }
+      const mode = this._p.mode, m = MODES[mode], w = this.omega, Z = mode === 'zone';
+      const rps = Math.abs(w) / (Math.PI * 2);
+      const zc = this._run ? zoneAt(this._t - this._run.t0) : zoneAt(0);
       const live = this._run && this._run.used < m.budget && w !== 0 && !Z;
       const pr = 2.2 - (2.2 - 1.55) * this._beat;
       this._pulse.scale.setScalar(pr);
@@ -463,8 +516,8 @@
 
       const r = this._run;
       if (mode !== this._hintMode) { this._hintMode = mode; this._hint.innerHTML = Z ? 'swipe with the spin to speed up<br>against it to slow down' : 'flick along the edge<br>swipe again as the ring lands'; }
-      this._hint.style.opacity = r || this.omega !== 0 || this._studio ? 0 : 1;
-      this._skipEl.style.display = r && mode === 'endurance' && w !== 0 ? 'block' : 'none';
+      this._hint.style.opacity = r || this.omega !== 0 || this._studio || this._noskip ? 0 : 1;
+      this._skipEl.style.display = r && mode === 'endurance' && w !== 0 && !this._noskip ? 'block' : 'none';
       this._scoreEl.textContent = r ? m.fmt(r.score) : this._lastScore != null ? m.fmt(this._lastScore) : '0';
       this._unitEl.textContent = Z && r ? 'in zone · ' + Math.max(0, Math.ceil(ZONE_LEN - (this._t - r.t0))) + 's left' : m.unit;
       this._rpm.textContent = rps > 0.05 ? rps.toFixed(1) + ' rev/s' : '';
@@ -486,9 +539,11 @@
       this._judgeEl.style.transform = 'scale(' + (1 + Math.max(0, 0.12 - ja * 0.6)).toFixed(3) + ')';
 
       // Spinner stopped for 15 s of real time: put the sound engine to sleep until the next tap.
+      if (!this._remote) {
       if (rps > 0.02 || _asleep || !A.ctx) this._busyT = now;
       else if (now - (this._busyT || now) > 15000) sleepAudio();
-      if (A.ctx && !_asleep) {
+      }
+      if (A.ctx && !_asleep && !this._remote) {
         const on = this._p.sound && rps > 0.02, t = A.ctx.currentTime, lob = rps * 3;
         const g = on ? Math.min(0.22, rps * 0.04) : 0;
         A.whirr.gain.setTargetAtTime(g, t, 0.05);

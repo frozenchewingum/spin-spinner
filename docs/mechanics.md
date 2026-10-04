@@ -6,7 +6,7 @@ Exact rules and constants used by `assets/spinner.js`. Angular speed `ω` is in 
 
 ## Spin-down
 
-Every frame the spinner loses speed to friction:
+Physics advances in fixed steps of 1/120 s (rendering runs at whatever rate the device manages), so every device — and every VS replica — computes the same spin-down. Each step the spinner loses speed to friction:
 
 ```
 dω/dt = −(ω · lin + sign(ω) · 0.18)

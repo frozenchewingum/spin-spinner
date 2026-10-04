@@ -16,6 +16,8 @@ A 3D fidget spinner you flick with your finger, with a rhythm-timing twist and g
 | **Speed** | The fastest spin you can reach. |
 | **Zone** *(hidden)* | Stay in the band for 30 seconds. |
 
+**VS:** tap **VS**, pick *Last one spinning* or *Speed race*, and send the link to a friend. When you're both ready, a shared 3-2-1 starts and you each see the other's spinner live in the corner.
+
 The rest is yours to discover.
 
 > **Spoilers:** the exact rules and formulas are in [docs/mechanics.md](docs/mechanics.md), for developers.
@@ -32,6 +34,7 @@ The rest is yours to discover.
 ```
 index.html                  page markup, leaderboard + guide logic (React via a small template runtime)
 assets/spinner.js           <fidget-spinner> web component: physics, input, timing, audio, rendering
+assets/vs.js                live VS: a small Supabase Realtime client + match logic
 assets/three.module.min.js  three.js r160 (3D rendering)
 assets/react*.js            React 18.3.1
 assets/dc-runtime.js        template runtime that binds {{ values }} in index.html to the component
@@ -46,6 +49,10 @@ It's a static site with no build step. GitHub Pages serves the files; Supabase s
 
 `<fidget-spinner>` is a self-contained custom element (shadow DOM + three.js canvas). Attributes: `mode` (`endurance` · `speed` · `zone`), `sound` (`true`/`false`), `color` (preset name or `custom:#body:#cap`), `shape` (`tri` · `bar` · `quad` · `star` · `wheel`).
 
+Extra attributes used by VS: `remote` (a watch-only copy with no input, sound or HUD), `locked` (ignore swipes) and `noskip` (hide *Skip to end*). Physics runs at a fixed 120 steps per second, so every device computes an identical spin-down.
+
+Events (bubble from the element): `spinswipe` `{ mode, word, sub, state }` after every swipe, `spinrunend` `{ mode, score, state }` when a run ends. `state` is a snapshot (`omega`, `angle`, `wob`, `beat`, run counters) that `applyRemote(state, word)` can load into a remote copy.
+
 When a run ends it reports the score in three ways (use whichever suits):
 
 ```js
@@ -55,6 +62,30 @@ window.__lastSpin;                                                  // last resu
 ```
 
 Audio is synthesised with Web Audio (no sound files). It sleeps when the page is hidden, when muted, or after 15 s of no spin, and wakes on the next tap, so phones don't keep the page running in the background.
+
+### Live VS
+
+VS uses **Supabase Realtime**: *Broadcast* for messages between the two players (nothing is stored in the database) and *Presence* to know who is in the room. `assets/vs.js` speaks the Realtime WebSocket protocol directly (`/realtime/v1/websocket`, vsn 1.0.0), so no extra library is loaded.
+
+- **Rooms.** Each match is a room named `spin-vs-<code>`, where the code is 10 random characters from the link (`?vs=<code>`). The creator is the host; the first person to open the link is the guest; anyone else sees *Match full*.
+- **Only speeds are sent.** After each swipe a player broadcasts a snapshot of their spinner (speed, angle, wobble, run counters), plus a check-in once a second while it spins. The other phone loads that into its `remote` copy, which spins down by the same fixed-step physics until the next message. A whole match is a few dozen tiny messages.
+- **Fair start.** The guest measures the round trip with 5 pings (and again when they tap Ready). The host announces “start in 3.6 s”; the guest starts its countdown after 3.6 s minus half the round trip, so both 3-2-1s line up without needing the phones' clocks to agree.
+- **Scoring.** Each phone is the authority on its own score and broadcasts it when its spinner stops. *Last one spinning* compares turns (higher wins); *Speed race* compares peak rev/s. Nobody swiping for 20 s scores 0.
+- **Leaving.** Closing the page sends `bye`. If a player drops off the room without it, the other gets 12 s of *reconnecting…* before it counts as a forfeit. Hiding the app shows the opponent *paused*.
+
+| Message | Payload |
+|---|---|
+| `ready` | `{ ready, round }` |
+| `ping` / `pong` | `{ t0, from }` / `{ t0, t1, to }` |
+| `setmode` | `{ mode }` (host, in the lobby) |
+| `start` | `{ at, in, round, mode }` (host) |
+| `swipe` | `{ state, word, sub, round }` |
+| `snap` | `{ state, round }` |
+| `end` | `{ score, round }` |
+| `pause` | `{ paused }` |
+| `bye` | `{}` |
+
+Realtime public channels must be allowed (Supabase → Project Settings → Realtime; on by default).
 
 ### Leaderboard API
 
@@ -88,7 +119,7 @@ Every table has row-level security with no public policies, so the browser can't
 ## Run your own copy
 
 1. **Database:** create a Supabase project and run `supabase/001` → `004` in order in the SQL Editor.
-2. **Connect the page:** in `index.html`, set `SB_URL` to your project URL and `SB_KEY` to its publishable key (Project Settings → API). If you use a different Supabase project, also update `connect-src` in the `Content-Security-Policy` meta tag.
+2. **Connect the page:** in `index.html`, set `SB_URL` to your project URL and `SB_KEY` to its publishable key (Project Settings → API). If you use a different Supabase project, also update both `https://` and `wss://` entries in `connect-src` in the `Content-Security-Policy` meta tag.
 3. **Host:** any static host works. For GitHub Pages: Settings → Pages → Deploy from a branch → `main` / root.
 4. **Local testing:** `python3 -m http.server` in the repo folder, then open http://localhost:8000. Opening the file directly won't load the ES modules.
 
@@ -108,6 +139,7 @@ When you change `assets/spinner.js`, bump the `?v=` number on its `<script>` tag
 ## Security notes
 
 - The Supabase key in `index.html` is the publishable key, which is meant to be public. Access is controlled by the database rules above, not by hiding the key.
-- The page has a Content Security Policy: it loads only its own files and talks only to the Supabase project.
+- The page has a Content Security Policy: it loads only its own files and talks only to the Supabase project (HTTPS for the leaderboard, WebSocket for VS).
+- VS rooms are public Realtime channels protected only by their random 10-character code. Someone who has the link can join (if the room isn't full) or send fake messages, so VS is meant for friendly matches, not anything with stakes.
 - Player names are always rendered as text, never as HTML.
 - Scores are computed in the browser, so a determined player can submit any score within the limits. The rate limit and score caps keep that in check, but it can't be prevented without verifying runs on a server.

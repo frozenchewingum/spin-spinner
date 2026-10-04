@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html><head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://yzvglzhdtmmkwyzinnfm.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' data: blob:; worker-src 'self' blob:; connect-src 'self' https://yzvglzhdtmmkwyzinnfm.supabase.co wss://yzvglzhdtmmkwyzinnfm.supabase.co; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
 <script>(function () {
   var a = function (p) { return new URL(p, document.baseURI).href; };
@@ -175,14 +175,16 @@ a{color:#eaa3c4;text-decoration:none}
 a:hover{color:#ffd6c0}
 </style>
 
-<script src="assets/spinner.js?v=2"></script>
+<script src="assets/spinner.js?v=4"></script>
+<script src="assets/vs.js?v=4"></script>
 
 </helmet>
 <main data-screen-label="Spinner" style="position:fixed;inset:0;background:#110b1d;overflow:hidden">
-  <x-import component-from-global-scope="fidget-spinner" sound="{{ sound }}" color="{{ skinAttr }}" shape="{{ shape }}" mode="{{ mode }}" studio="{{ studio }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
+  <x-import component-from-global-scope="fidget-spinner" sound="{{ sound }}" color="{{ skinAttr }}" shape="{{ shape }}" mode="{{ playMode }}" studio="{{ studio }}" locked="{{ vsLocked }}" noskip="{{ vsNoskip }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
   <header style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:max(20px,env(safe-area-inset-top)) 24px 0;pointer-events:none">
     <sc-if value="{{ showTitle }}" hint-placeholder-val="{{ true }}"><div style="font:italic 400 24px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff;letter-spacing:.01em">spin</div></sc-if><sc-if value="{{ embedded }}" hint-placeholder-val="{{ false }}"><div style="width:120px;height:44px"></div></sc-if>
     <div style="pointer-events:auto;display:flex;gap:8px">
+      <button sc-camel-on-click="{{ openVs }}" aria-label="VS — challenge a friend" style="height:44px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent;min-width:52px;padding:0 14px;font-family:'Instrument Serif',Georgia,serif;font-style:italic;font-size:20px;line-height:1;color:{{ vsBtnColor }}" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0">VS</button>
       <button sc-camel-on-click="{{ openHelp }}" aria-label="How to play" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M9.6 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.4 2.2-2.4 3.6"></path><circle cx="12" cy="17" r=".6" fill="currentColor"></circle></svg></button>
       <button sc-camel-on-click="{{ toggleCust }}" aria-label="Customize spinner" aria-expanded="{{ custOpen }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.8 1.6-1.6 0-.5-.2-.8-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.7-1.6 1.6-1.6h1.9A4.9 4.9 0 0 0 21 10.5C21 6.4 17 3 12 3z"></path><circle cx="7.5" cy="11" r="1.1"></circle><circle cx="10.5" cy="7" r="1.1"></circle><circle cx="15.5" cy="7.5" r="1.1"></circle></svg></button>
       <button sc-camel-on-click="{{ toggleSound }}" aria-label="{{ soundLabel }}" style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.4);color:#c9bfd8;cursor:pointer;-webkit-tap-highlight-color:transparent" style-hover="border-color:rgba(255,214,192,.45);color:#ffd6c0"><svg width="20" height="20" sc-camel-view-box="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"></path><path d="{{ soundWave }}"></path></svg></button>
@@ -280,7 +282,7 @@ a:hover{color:#ffd6c0}
       </div>
     </div>
   </sc-if>
-  <sc-if value="{{ notStudio }}" hint-placeholder-val="{{ true }}">
+  <sc-if value="{{ showBar }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;left:12px;right:12px;bottom:max(24px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:8px;pointer-events:none">
       <div role="tablist" style="pointer-events:auto;display:flex;gap:2px;padding:4px;border:1px solid rgba(255,214,192,.14);border-radius:999px;background:rgba(17,11,29,.55)">
         <sc-for list="{{ modes }}" as="md" hint-placeholder-count="3">
@@ -291,6 +293,84 @@ a:hover{color:#ffd6c0}
         <span style="font:italic 400 20px/1 'Instrument Serif',Georgia,serif">Ranking</span>
         <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.1em;color:#ffd6c0">{{ best }}</span>
       </button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ vsShowOpp }}" hint-placeholder-val="{{ false }}">
+    <div aria-label="Opponent's spinner" style="position:absolute;z-index:4;right:12px;bottom:calc(max(24px,env(safe-area-inset-bottom)) + 70px);width:min(36vw,168px);aspect-ratio:1;border-radius:22px;overflow:hidden;border:1px solid rgba(255,214,192,.28);background:#110b1d;box-shadow:0 8px 30px rgba(0,0,0,.45);pointer-events:none">
+      <x-import component-from-global-scope="fidget-spinner" remote="true" sound="false" color="{{ oppColor }}" shape="{{ oppShape }}" mode="{{ playMode }}" style="position:absolute;inset:0;width:100%;height:100%" hint-size="100%,100%"></x-import>
+      <div style="position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:baseline;gap:6px;padding:9px 11px;background:linear-gradient(rgba(17,11,29,.85),rgba(17,11,29,0))">
+        <span style="font:italic 400 17px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ oppName }}</span>
+        <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;color:#ffd6c0;font-variant-numeric:tabular-nums">{{ oppScore }}</span>
+      </div>
+      <div style="position:absolute;left:0;right:0;bottom:8px;text-align:center;font:italic 400 16px/1 'Instrument Serif',Georgia,serif;color:#eaa3c4">{{ oppStatus }}</div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ vsCountdown }}" hint-placeholder-val="{{ false }}">
+    <div aria-live="assertive" style="position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none;background:rgba(8,5,14,.35)">
+      <span style="font:italic 400 120px/1 'Instrument Serif',Georgia,serif;color:#ffd6c0;text-shadow:0 6px 40px rgba(234,163,196,.5)">{{ countText }}</span>
+      <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;color:#c9bfd8">{{ countSub }}</span>
+    </div>
+  </sc-if>
+  <sc-if value="{{ vsBar }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:12px;right:12px;bottom:max(24px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:8px;pointer-events:none">
+      <div style="pointer-events:auto;display:flex;align-items:center;gap:14px;min-height:54px;padding:0 18px;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.75)">
+        <span style="font:italic 400 19px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff">{{ barText }}</span>
+      </div>
+      <button sc-camel-on-click="{{ vsLeave }}" aria-label="Leave match" style="pointer-events:auto;min-height:54px;padding:0 16px;border:1px solid rgba(255,214,192,.18);border-radius:999px;background:rgba(17,11,29,.75);color:#c9bfd8;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Leave</button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ vsPanel }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,5,14,.7)">
+      <div role="dialog" aria-label="VS" style="width:100%;max-width:420px;max-height:calc(100dvh - 32px);overflow-y:auto;box-sizing:border-box;display:flex;flex-direction:column;gap:18px;padding:24px;border:1px solid rgba(255,214,192,.18);border-radius:28px;background:rgba(17,11,29,.96)">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px">
+          <span style="font:italic 400 34px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff">{{ vsTitle }}</span>
+          <button sc-camel-on-click="{{ vsClose }}" aria-label="Close" style="width:44px;height:44px;margin:-10px -10px 0 0;border:0;background:none;color:#9a90ae;font:400 22px/1 'Geist Mono',monospace;cursor:pointer">×</button>
+        </div>
+        <sc-if value="{{ vsText }}" hint-placeholder-val="{{ true }}"><p style="margin:0;font:400 13px/1.6 'Geist Mono',ui-monospace,monospace;color:#c9bfd8">{{ vsText }}</p></sc-if>
+
+        <sc-if value="{{ vsAskName }}" hint-placeholder-val="{{ false }}">
+          <input value="{{ name }}" sc-camel-on-change="{{ onName }}" maxlength="14" placeholder="Your name" aria-label="Your name" style="min-height:52px;padding:0 16px;border:1px solid rgba(255,214,192,.25);border-radius:16px;background:rgba(255,255,255,.05);color:#e9e7ff;font:400 17px/1 'Geist Mono',ui-monospace,monospace;outline:none">
+        </sc-if>
+
+        <sc-if value="{{ vsPickMode }}" hint-placeholder-val="{{ false }}">
+          <div role="radiogroup" aria-label="Match type" style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ vsModes }}" as="vm" hint-placeholder-count="2">
+              <button role="radio" aria-checked="{{ vm.on }}" sc-camel-on-click="{{ vm.pick }}" style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;padding:14px 16px;border:1px solid {{ vm.border }};border-radius:16px;background:{{ vm.bg }};cursor:pointer;text-align:left">
+                <span style="font:italic 400 22px/1 'Instrument Serif',Georgia,serif;color:{{ vm.fg }}">{{ vm.label }}</span>
+                <span style="font:400 12px/1.4 'Geist Mono',ui-monospace,monospace;color:#9a90ae">{{ vm.text }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vsShowLink }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="padding:14px 16px;border:1px dashed rgba(255,214,192,.3);border-radius:16px;font:400 12px/1.5 'Geist Mono',ui-monospace,monospace;color:#ffd6c0;word-break:break-all;user-select:all">{{ vsLink }}</div>
+            <div style="display:flex;gap:8px">
+              <button sc-camel-on-click="{{ vsShare }}" style="flex:1;min-height:52px;padding:0 20px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">Send link</button>
+              <button sc-camel-on-click="{{ vsCopy }}" style="min-height:48px;padding:0 18px;border:1px solid rgba(255,214,192,.35);border-radius:16px;background:rgba(255,255,255,.03);color:#e9e7ff;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vsCopyLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vsShowPlayers }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ vsPlayers }}" as="pl" hint-placeholder-count="2">
+              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:10px;padding:12px 14px;border-radius:12px;background:{{ pl.bg }}">
+                <span style="font:italic 400 22px/1 'Instrument Serif',Georgia,serif;color:#e9e7ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pl.name }}</span>
+                <span style="font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.1em;color:{{ pl.color }}">{{ pl.right }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vsPrimary }}" hint-placeholder-val="{{ true }}">
+          <button sc-camel-on-click="{{ vsPrimaryAct }}" style="min-height:52px;padding:0 20px;border:0;border-radius:16px;background:#eaa3c4;color:#1a1028;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vsPrimary }}</button>
+        </sc-if>
+        <sc-if value="{{ vsSecondary }}" hint-placeholder-val="{{ false }}">
+          <button sc-camel-on-click="{{ vsSecondaryAct }}" style="min-height:48px;padding:0 18px;border:1px solid rgba(255,214,192,.35);border-radius:16px;background:rgba(255,255,255,.03);color:#e9e7ff;font:500 11px/1 'Geist Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase;cursor:pointer">{{ vsSecondary }}</button>
+        </sc-if>
+      </div>
     </div>
   </sc-if>
   <sc-if value="{{ custOpen }}" hint-placeholder-val="{{ false }}">
@@ -360,6 +440,12 @@ const deviceKey = () => {
   }
   return k;
 };
+const VS_MODES = {
+  endurance: ['Last one spinning', 'Most turns before your spinner stops wins. 3 swipes each.'],
+  speed: ['Speed race', 'Fastest spin wins. 5 swipes each.'],
+};
+const elLocal = () => document.querySelector('fidget-spinner:not([remote])');
+const elRemote = () => document.querySelector('fidget-spinner[remote]');
 const FMT = { endurance: v => String(Math.floor(v)), zone: v => Number(v).toFixed(1), speed: v => Number(v).toFixed(1) };
 const UNIT = { endurance: 'turns', zone: 's', speed: 'rev/s' };
 const MODE_LABEL = { endurance: 'Endurance', zone: 'Zone', speed: 'Speed' };
@@ -383,6 +469,7 @@ class Component extends DCLogic {
     this.setState({ showHelp: !LS.get('spin.helpSeen'), name: LS.get('spin.name') || '', mode: UNIT[mode] && !HIDDEN_MODES.includes(mode) ? mode : 'endurance', period: PERIODS.some(p => p[0] === period) ? period : 'all' });
     this._onEnd = e => {
       const { mode, score } = e.detail || e; if (!UNIT[mode] || !(score > 0)) return;
+      if (this._match) return;
       const b = this.state.boards;
       if (b && b[mode]) {
         // Ask to save only when the run beats this player's best for today (which also covers week and all-time).
@@ -396,6 +483,14 @@ class Component extends DCLogic {
     };
     window.__onSpinEnd = this._onEnd;
     this._load();
+    window.addEventListener('spinswipe', e => { if (this._match && e.detail) this._match.localSwipe(e.detail); });
+    window.addEventListener('spinrunend', e => { if (this._match && e.detail) this._match.localEnd(e.detail.score); });
+    const code = new URLSearchParams(location.search).get('vs');
+    if (code && window.SpinVS && SpinVS.codeOk(code)) {
+      this._vsCode = code;
+      if ((LS.get('spin.name') || '').trim()) setTimeout(() => this._vsOpen(code), 0);
+      else this.setState({ vsUi: 'joinName', showHelp: false });
+    }
   }
   componentWillUnmount() { window.removeEventListener('resize', this._onResize); if (window.__onSpinEnd === this._onEnd) window.__onSpinEnd = null; }
   _load() {
@@ -432,6 +527,98 @@ class Component extends DCLogic {
       this.setState({ saving: false, pending: null, online: false, showBoard: true, period: 'all', notice: '' });
     });
   }
+  _vsOpen(code) {
+    const name = (this.state.name || '').trim().replace(/\s+/g, ' ').slice(0, 14);
+    if (!name) { this.setState({ vsUi: code ? 'joinName' : 'setup', vsErr: 'Type a name first' }); return; }
+    LS.set('spin.name', name);
+    if (this._match) this._match.leave();
+    const skin = this.state.color === 'custom' ? 'custom:' + (this.state.customBody || '#3f8f8a') + ':' + (this.state.customCap || '#ffd6c0') : (this.state.color || 'plum');
+    this._match = new SpinVS.VSMatch({
+      url: SB_URL, key: SB_KEY, code: code || null, mode: this.state.vsMode || 'endurance', name, skin: skin + '|' + (this.state.shape || 'tri'),
+      local: elLocal, remote: elRemote,
+      onChange: s => {
+        const playing = ['countdown', 'playing', 'finished'].includes(s.phase);
+        if (playing && !this._tick) this._tick = setInterval(() => this.setState({ tick: Date.now() }), 200);
+        if (!playing && this._tick) { clearInterval(this._tick); this._tick = null; }
+        this.setState({ vs: Object.assign({}, s, { me: Object.assign({}, s.me), opp: s.opp && Object.assign({}, s.opp) }), vsUi: 'match', vsCopied: false });
+      },
+    });
+    this.setState({ vsUi: 'match', vs: Object.assign({}, this._match.s), showHelp: false, showBoard: false, custOpen: false, pending: null, vsErr: '' });
+  }
+  _vsLeave() {
+    if (this._match) this._match.leave();
+    this._match = null; if (this._tick) { clearInterval(this._tick); this._tick = null; }
+    if (new URLSearchParams(location.search).get('vs')) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }
+    this._vsCode = null;
+    const L = elLocal(); if (L) L.resetRun();
+    this.setState({ vsUi: null, vs: null, vsErr: '' });
+  }
+  _vsShare() {
+    const m = this._match; if (!m) return;
+    const text = (this.state.name || 'A friend') + ' challenges you to a ' + (m.mode === 'speed' ? 'speed race' : 'spin-off') + ' on spin!';
+    if (navigator.share) { navigator.share({ title: 'spin VS', text, url: m.link }).catch(() => {}); return; }
+    this._vsCopy();
+  }
+  _vsCopy() {
+    const m = this._match; if (!m) return;
+    (navigator.clipboard ? navigator.clipboard.writeText(m.link) : Promise.reject()).then(() => this.setState({ vsCopied: true }), () => {});
+  }
+  _vsVals() {
+    const ui = this.state.vsUi, s = this.state.vs, m = this._match, name = (this.state.name || '').trim() || 'You';
+    const v = { vsPanel: false, vsTitle: 'VS', vsText: '', vsAskName: false, vsPickMode: false, vsShowLink: false, vsShowPlayers: false, vsPlayers: [],
+      vsPrimary: '', vsSecondary: '', vsPrimaryAct: () => {}, vsSecondaryAct: () => this._vsLeave(), vsClose: () => this._vsLeave(),
+      vsShowOpp: false, vsCountdown: false, vsBar: false, countText: '', countSub: '', barText: '', oppName: '', oppScore: '', oppStatus: '',
+      oppColor: 'plum', oppShape: 'tri', vsLocked: 'false', vsNoskip: 'false', vsLink: m ? m.link : '', vsCopyLabel: this.state.vsCopied ? 'Copied' : 'Copy',
+      vsBtnColor: ui ? '#ffd6c0' : '#c9bfd8', showBar: !this.state.custOpen && !ui, vsActive: !!ui };
+    const mode = (s && s.mode) || this.state.vsMode || 'endurance', f = FMT[mode], u = UNIT[mode];
+    const modePick = { vsPickMode: true, vsModes: Object.keys(VS_MODES).map(id => {
+      const on = id === mode;
+      return { label: VS_MODES[id][0], text: VS_MODES[id][1], on: on ? 'true' : 'false', fg: on ? '#ffd6c0' : '#e9e7ff', bg: on ? 'rgba(234,163,196,.12)' : 'transparent', border: on ? 'rgba(234,163,196,.6)' : 'rgba(255,214,192,.14)',
+        pick: () => { LS.set('spin.vsMode', id); this.setState({ vsMode: id }); if (m) m.setMode(id); } };
+    }) };
+    if (ui === 'setup') return Object.assign(v, modePick, { vsPanel: true, vsText: 'Challenge a friend live. Send them a link — when they open it, you both spin at the same time.' + (this.state.vsErr ? ' ' + this.state.vsErr + '.' : ''),
+      vsAskName: true, vsPrimary: 'Create link', vsPrimaryAct: () => this._vsOpen(null), vsSecondary: '', vsClose: () => this.setState({ vsUi: null }) });
+    if (ui === 'joinName') return Object.assign(v, { vsPanel: true, vsTitle: "You've been challenged", vsText: 'Pick a name so your opponent knows who they are up against.' + (this.state.vsErr ? ' ' + this.state.vsErr + '.' : ''),
+      vsAskName: true, vsPrimary: 'Join match', vsPrimaryAct: () => this._vsOpen(this._vsCode), vsSecondary: 'Not now' });
+    if (!s) return v;
+    const opp = s.opp, on = opp ? opp.name : 'Opponent';
+    v.vsNoskip = 'true'; v.vsLocked = s.phase === 'playing' && !s.me.done ? 'false' : 'true'; v.showBar = false;
+    if (opp && opp.skin) { const [c, sh] = opp.skin.split('|'); v.oppColor = c || 'plum'; v.oppShape = sh || 'tri'; }
+    const L = elLocal(), R = elRemote();
+    const live = el => el ? (el._run ? el._run.score : el._lastScore) : null;
+    const myScore = s.me.done ? s.me.score : live(L), opScore = opp && opp.done ? opp.score : live(R);
+    const fs = x => x == null ? '0' : f(x);
+    switch (s.phase) {
+      case 'connecting': return Object.assign(v, { vsPanel: true, vsTitle: 'Connecting…', vsSecondary: 'Cancel' });
+      case 'waiting': return Object.assign(v, modePick, { vsPanel: true, vsTitle: 'Send the link', vsText: 'Your opponent opens this link to join. Keep this screen open until they arrive.', vsShowLink: true, vsSecondary: 'Cancel' });
+      case 'joining': return Object.assign(v, { vsPanel: true, vsTitle: 'Joining…', vsText: 'Waiting for the player who sent the link. Ask them to keep spin open.', vsSecondary: 'Leave' });
+      case 'lobby': return Object.assign(v, s.role === 'host' ? modePick : {}, { vsPanel: true, vsTitle: 'Ready?', vsText: s.role === 'host' ? '' : VS_MODES[mode][0] + ' — ' + VS_MODES[mode][1],
+        vsShowPlayers: true, vsPlayers: [[name + ' (you)', s.me.ready], [on, opp && opp.ready]].map(([n, r]) => ({ name: n, right: r ? 'READY' : opp && !opp.present && n === on ? 'RECONNECTING…' : 'NOT READY', color: r ? '#ffd6c0' : '#7d7392', bg: 'rgba(255,255,255,.03)' })),
+        vsPrimary: s.me.ready ? 'Not ready' : 'Ready', vsPrimaryAct: () => m && m.setReady(!s.me.ready), vsSecondary: 'Leave' });
+      case 'countdown': {
+        const left = Math.max(0, s.startAt - Date.now());
+        return Object.assign(v, { vsCountdown: true, countText: String(Math.ceil(left / 1000) || 'Go'), countSub: VS_MODES[mode][0], vsShowOpp: true, oppName: on, oppScore: '', oppStatus: 'ready' });
+      }
+      case 'playing': case 'finished': {
+        const bar = s.phase === 'finished' && !(opp && opp.done) ? name + ' ' + fs(myScore) + ' · waiting for ' + on + '…' : name + ' ' + fs(myScore) + '  ·  ' + on + ' ' + fs(opScore);
+        return Object.assign(v, { vsBar: true, barText: bar, vsShowOpp: true, oppName: on, oppScore: fs(opScore) + ' ' + (u === 'turns' ? '' : u),
+          oppStatus: opp && !opp.present ? 'reconnecting…' : opp && opp.paused ? 'paused' : opp && opp.done ? 'done' : opp ? opp.word : '' });
+      }
+      case 'result': {
+        const title = s.winner === 'me' ? 'You win!' : s.winner === 'opp' ? on + ' wins' : s.winner === 'draw' ? "It's a draw" : 'Match over';
+        const rows = [[name + ' (you)', s.me.score, s.winner === 'me'], [on, opp && opp.score, s.winner === 'opp']];
+        return Object.assign(v, { vsPanel: true, vsTitle: title, vsText: opp && opp.ready && !s.me.ready ? on + ' wants a rematch.' : s.me.ready ? 'Waiting for ' + on + '…' : '',
+          vsShowPlayers: true, vsPlayers: rows.map(([n, sc, w]) => ({ name: n, right: (sc == null ? '–' : f(sc)) + ' ' + u, color: w ? '#ffd6c0' : '#9a90ae', bg: w ? 'rgba(234,163,196,.14)' : 'rgba(255,255,255,.03)' })),
+          vsPrimary: s.me.ready ? 'Cancel rematch' : 'Rematch', vsPrimaryAct: () => m && m.setReady(!s.me.ready), vsSecondary: 'Leave' });
+      }
+      case 'gone': return Object.assign(v, { vsPanel: true, vsTitle: s.forfeit ? 'You win' : 'Opponent left', vsText: s.forfeit ? 'Your opponent left mid-match.' : 'They left the match.',
+        vsPrimary: s.role === 'host' ? 'Invite someone else' : '', vsPrimaryAct: () => m && m._set({ phase: 'waiting', opp: null, forfeit: false }), vsSecondary: 'Leave' });
+      case 'full': return Object.assign(v, { vsPanel: true, vsTitle: 'Match full', vsText: 'This match already has two players. Ask for a new link.', vsPrimary: 'OK', vsPrimaryAct: () => this._vsLeave(), vsSecondary: '' });
+      case 'error': return Object.assign(v, { vsPanel: true, vsTitle: "Can't connect", vsText: (s.error || 'Something went wrong') + '. Check your connection and try again.',
+        vsPrimary: 'Try again', vsPrimaryAct: () => this._vsOpen(s.role === 'guest' ? s.code : null), vsSecondary: 'Leave' });
+    }
+    return v;
+  }
   _share() {
     const m = this.state.mode, per = this.state.period, b = this.state.boards, url = location.origin + location.pathname;
     const me = b && b[m] && b[m][per] && b[m][per].me;
@@ -462,7 +649,11 @@ class Component extends DCLogic {
     const defs = [['plum', 'Plum', '#5b3a78'], ['rose', 'Rose', '#c9708f'], ['ink', 'Ink', '#2a2f5c'], ['chrome', 'Chrome', 'linear-gradient(135deg,#fff,#9b97ad 55%,#e9e6f2)'], ['gold', 'Gold', 'linear-gradient(135deg,#ffe3a6,#b07d35 55%,#f2c77c)'], ['glass', 'Glass', 'radial-gradient(circle at 35% 30%,#fff,rgba(243,217,255,.35) 60%)'], ['matte', 'Matte', '#1d1a26']];
     const cb = this.state.customBody || '#3f8f8a', cc = this.state.customCap || '#ffd6c0', isC = this.state.color === 'custom';
     const saveSkin = st => { this.setState(st); const n = { ...this.state, ...st }; LS.set('spin.skin', JSON.stringify({ color: n.color, customBody: n.customBody, customCap: n.customCap, shape: n.shape })); };
+    const vsv = this._vsVals();
     return {
+      ...vsv,
+      playMode: this.state.vs && this.state.vs.mode ? this.state.vs.mode : mode,
+      openVs: () => { if (this.state.vsUi) return; this.setState({ vsUi: 'setup', vsMode: this.state.vsMode || LS.get('spin.vsMode') || 'endurance', showHelp: false, showBoard: false, custOpen: false, vsErr: '' }); },
       showTitle: !this.props.embedded, embedded: !!this.props.embedded,
       sound: on ? 'on' : 'off',
       mode, unit,
@@ -546,7 +737,7 @@ class Component extends DCLogic {
         ['Endurance', 'as many turns as you can.'],
         ['Speed', 'the fastest spin you can reach.'],
         ['Zone', 'stay in the band for 30 seconds.'],
-      ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).map(([name, text]) => ({ name, text })),
+      ].filter(([n]) => !HIDDEN_MODES.includes(n.toLowerCase())).concat([['VS', 'challenge a friend live — tap VS and send them the link.']]).map(([name, text]) => ({ name, text })),
       stop: e => e.stopPropagation(),
       soundText: on ? 'Sound on' : 'Sound off',
       soundLabel: on ? 'Mute sound' : 'Turn sound on',
