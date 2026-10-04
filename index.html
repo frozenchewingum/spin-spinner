@@ -661,14 +661,21 @@ class Component extends DCLogic {
   }
   _vsCopy() {
     const m = this._match; if (!m) return;
-    (navigator.clipboard ? navigator.clipboard.writeText(m.link) : Promise.reject()).then(() => this.setState({ vsCopied: true }), () => {});
+    const done = () => this.setState({ vsCopied: true });
+    const fallback = () => { // older browsers / blocked clipboard: copy from a hidden text box
+      const ta = document.createElement('textarea'); ta.value = m.link; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, ta.value.length);
+      let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove(); if (ok) done();
+    };
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(m.link).then(done, fallback); else fallback();
   }
   _vsVals() {
     const ui = this.state.vsUi, s = this.state.vs, m = this._match, name = (this.state.name || '').trim() || 'You';
     const v = { vsPickWhere: false, vsWheres: [], vsPanel: false, vsTitle: 'VS', vsText: '', vsAskName: false, vsPickMode: false, vsShowLink: false, vsShowPlayers: false, vsPlayers: [],
       vsPrimary: '', vsSecondary: '', vsPrimaryAct: () => {}, vsSecondaryAct: () => this._vsLeave(), vsClose: () => this._vsLeave(),
       vsShowOpp: false, vsCountdown: false, vsBar: false, countText: '', countSub: '', barText: '', oppName: '', oppScore: '', oppStatus: '',
-      oppColor: 'plum', oppShape: 'tri', vsLocked: 'false', vsNoskip: 'false', vsLink: m ? m.link : '', vsCopyLabel: this.state.vsCopied ? 'Copied' : 'Copy',
+      oppColor: 'plum', oppShape: 'tri', vsLocked: 'false', vsNoskip: 'false', vsLink: m ? m.link : '', vsShare: () => this._vsShare(), vsCopy: () => this._vsCopy(), vsLeave: () => this._vsLeave(), vsCopyLabel: this.state.vsCopied ? 'Copied' : 'Copy',
       vsBtnColor: ui ? '#ffd6c0' : '#c9bfd8', showBar: !this.state.custOpen && !ui, vsActive: !!ui };
     const mode = (s && s.mode) || this.state.vsMode || 'endurance', f = FMT[mode], u = UNIT[mode];
     const modePick = { vsPickMode: true, vsModes: Object.keys(VS_MODES).map(id => {
